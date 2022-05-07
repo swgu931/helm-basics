@@ -1,4 +1,4 @@
-# Helm Local setup
+# Helm repositoy setup in Local
 ## Method 1. Using local storage
 ## Method 2. By installing chartmuseum
 
