@@ -1,0 +1,104 @@
+
+# simple helm package creation example deploying pod, service 
+
+mkdir myapp
+cd myapp
+
+vi Chart.yaml
+---
+apiVersion: v2
+name: myapp
+version: 0.1.0
+---
+
+touch values.yaml
+mkdir templates
+
+helm lint .
+
+kubectl run nginx --image=nginx  --dry-run=client  -o yaml > templates/pod.yaml
+kubectl create service loadbalancer --tcp=80 --dry-run=client mysvc -o yaml > templates/service.yaml
+
+# modify svc selector matching to pod's label
+
+helm lint .
+helm install my-first-app .
+
+
+helm ls
+kubectl get po -o yaml
+kubectl get svc
+
+==================
+vi values.yaml
+
+app:
+  name: myapp
+pod:
+  images: nginx
+
+service:
+  name: myservice
+  port: 80
+  protocol: TCP
+  type: LoadBalancer
+===================
+
+vi templetes/pod.yaml
+
+:%s/nginx/{{ .Values.app.name }}
+
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: {{ .Values.app.name }}
+  name: {{ .Values.app.name }}
+spec:
+  containers:
+  - image: {{ .Values.pod.image }}
+    name: {{ .Values.app.name }}
+
+===================
+
+vi templates/service.yaml
+
+:%s/mysvc/{{ .Values.service.name }}/g
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: {{ .Values.service.name }}
+  name: {{ .Values.service.name }}
+spec:
+  ports:
+  - name: {{ .Values.service.name }}
+    port: {{ .Values.service.port }}
+    protocol: {{ .Values.service.protocol }}
+    tartgetPort: 80
+  selector:
+    run: {{ .Values.app.name }}
+  type: {{ .Values.service.type }}
+
+=====================
+
+
+helm install my-first-app . --dry-run 
+helm install my-first-app .
+
+=====================
+
+# overide image
+
+vi custom-values.yaml
+
+---
+pod:
+  image: alexwhen/docker-2048
+
+
+----
+
+helm upgrade my-first-app . -f custom-values.yaml
+
