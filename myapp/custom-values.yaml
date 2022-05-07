@@ -1,0 +1,5 @@
+pod:
+  image: alexwhen/docker-2048
+
+service:
+  type: LoadBalancer
